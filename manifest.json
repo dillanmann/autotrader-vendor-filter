@@ -1,0 +1,20 @@
+{
+    "name": "AutoTrader UK Cazoo Hider",
+    "description": "Hides Cazoo and other remote/home delivery car garages",
+    "version": "1.0",
+    "manifest_version": 3,
+    "background": {
+        "service_worker": "worker.js"
+    },
+    "permissions": [
+        "webNavigation",
+        "scripting",
+        "declarativeContent",
+        "activeTab",
+        "tabs",
+        "storage"
+    ],
+    "host_permissions": [
+        "*://*.autotrader.co.uk/*"
+    ]
+  }
