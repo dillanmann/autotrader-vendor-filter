@@ -1,4 +1,4 @@
-const VENDORS_TO_HIDE = ["Cazoo", "CarSupermarket.com"];
+const VENDORS_TO_HIDE = ["Cazoo", "CarSupermarket.com", "The German Car Group", "Henley Cars Ltd"];
 const AUTOTRADER_URL = "autotrader.co.uk"
 const CAR_SEARCH_PATH = "car-search";
 
