@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "AutoTrader UK Cazoo Hider",
+    "name": "AutoTrader UK Remote Garage Hider",
     "version": "1.0",
-    "description": "Hides Cazoo and other remote/home delivery car garages",
+    "description": "Hides remote/home delivery car garages as AutoTrader provides no way to do this and will keep showing you cars that are 200+ miles away.",
     "permissions": [
         "webNavigation", "scripting", "activeTab"
     ],

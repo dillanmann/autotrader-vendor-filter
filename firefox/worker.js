@@ -10,9 +10,7 @@ const navigationFilters = {
         ]
 };
 
-function onError(error) {
-    console.error(`Error: ${error}`);
-}
+onError = (error) => console.error(`Error: ${error}`);
 
 function invokeRemoveAdverts(tabId) {
     browser.tabs
@@ -29,11 +27,16 @@ function onExecuted(result) {
     querying.then(tabs => invokeRemoveAdverts(tabs[0].id));
 }
 
-browser.webNavigation.onCompleted.addListener(data => {
+function loadContentScript(tabId) {
     let loadScript = browser.scripting.executeScript({
-        target: { tabId: data.tabId },
+        target: { tabId: tabId },
         files: ['remove_specified_adverts.js']
     });
+    return loadScript;
+}
+
+browser.webNavigation.onCompleted.addListener(data => {
+    let loadScript = loadContentScript(data.tabId);
     loadScript.then(onExecuted);
 
 }, navigationFilters);
@@ -41,10 +44,7 @@ browser.webNavigation.onCompleted.addListener(data => {
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     // check for a URL in the changeInfo parameter (url is only added when it is changed)
     if (changeInfo.url && changeInfo.url.includes(AUTOTRADER_URL) && changeInfo.url.includes(CAR_SEARCH_PATH)) {
-        let loadScript = browser.scripting.executeScript({
-            target: { tabId: tabId },
-            files: ['remove_specified_adverts.js']
-        });
+        let loadScript = loadContentScript(tabId);
         loadScript.then(onExecuted);
     }
 });
