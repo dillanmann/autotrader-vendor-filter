@@ -17,13 +17,13 @@ const ALL_VENDORS = [
     "German Autocentre",
     "Bridge End Motors Ltd"];
 
-function buildLabelElement (labelText){
+function buildLabelElement(labelText) {
     let labelElem = document.createElement('label');
     labelElem.innerText = labelText;
     return labelElem;
 }
 
-function buildCheckboxElement (elementId){
+function buildCheckboxElement(elementId) {
     let checkboxElem = document.createElement('input');
     checkboxElem.type = 'checkbox';
     checkboxElem.id = elementId;
@@ -31,14 +31,14 @@ function buildCheckboxElement (elementId){
     return checkboxElem;
 }
 
-function stripVendorName (vendorName){ return vendorName.replaceAll(' ', '-').replaceAll('.', '_'); }
+function stripVendorName(vendorName) { return vendorName.replaceAll(' ', '-').replaceAll('.', '_'); }
 
 function restoreOptions() {
 
     let formElem = document.querySelector('#settings-form');
 
     // Ensure elements exist in options form
-    if (formElem && formElem.querySelectorAll('.setting').length == 0){
+    if (formElem && formElem.querySelectorAll('.setting').length == 0) {
         ALL_VENDORS.forEach(vendorName => {
             let divElem = document.createElement('div');
             divElem.appendChild(buildLabelElement(vendorName));
@@ -53,8 +53,8 @@ function restoreOptions() {
         storageItem.then((res) => {
             var elem = document.querySelector(`#setting-${storageKey}`);
             if (!elem) return;
-            elem.checked = res[storageKey].checked || false;
-          });
+            elem.checked = !res || !res[storageKey] ? false : res[storageKey].checked || false;
+        });
     });
 }
 
@@ -65,11 +65,11 @@ function saveOptions(e) {
         if (!elem) return;
         browser.storage.local.set({
             [storageKey]: { checked: elem.checked }
-          });
-          e.preventDefault();
+        });
+        e.preventDefault();
     });
     e.preventDefault();
-  }
+}
 
 document.addEventListener('DOMContentLoaded', restoreOptions);
 document.querySelector("form").addEventListener("submit", saveOptions);
