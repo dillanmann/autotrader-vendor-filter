@@ -12,19 +12,34 @@ const navigationFilters = {
 
 onError = (error) => console.error(`Error: ${error}`);
 
-function invokeRemoveAdverts(tabId) {
+function loadActiveVendorFilters() {
+    return new Promise((resolve, reject) => {
+        let storageItem = browser.storage.local.get();
+        storageItem.then((res) => {
+            let vendorKeys = Object.keys(res);
+            let activeSettings = vendorKeys.filter(k => res[k].checked === true).map(v => v.replaceAll('-', ' ').replaceAll('_', '.'));
+            resolve(activeSettings);
+        });
+    });
+}
+
+function invokeRemoveAdverts(tabId, activeFilters) {
     browser.tabs
-        .sendMessage(tabId, {})
+        .sendMessage(tabId, { activeFilters: activeFilters })
         .then()
         .catch(onError);
 }
 
-function onExecuted(result) {
-    let querying = browser.tabs.query({
+function getActiveTab(){
+    return browser.tabs.query({
         active: true,
         currentWindow: true,
     });
-    querying.then(tabs => invokeRemoveAdverts(tabs[0].id));
+}
+
+function onExecuted(activeFilters) {
+    let querying = getActiveTab();
+    querying.then(tabs => invokeRemoveAdverts(tabs[0].id, activeFilters));
 }
 
 function loadContentScript(tabId) {
@@ -36,15 +51,21 @@ function loadContentScript(tabId) {
 }
 
 browser.webNavigation.onCompleted.addListener(data => {
-    let loadScript = loadContentScript(data.tabId);
-    loadScript.then(onExecuted);
+    let loadActiveFilters = loadActiveVendorFilters();
+    loadActiveFilters.then(activeFilters => {
+        let loadScript = loadContentScript(data.tabId);
+        loadScript.then(() => onExecuted(activeFilters));
+    });
 
 }, navigationFilters);
 
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     // check for a URL in the changeInfo parameter (url is only added when it is changed)
     if (changeInfo.url && changeInfo.url.includes(AUTOTRADER_URL) && changeInfo.url.includes(CAR_SEARCH_PATH)) {
-        let loadScript = loadContentScript(tabId);
-        loadScript.then(onExecuted);
+        let loadActiveFilters = loadActiveVendorFilters();
+        loadActiveFilters.then(activeFilters => {
+            let loadScript = loadContentScript(tabId);
+            loadScript.then(() => onExecuted(activeFilters));
+        });
     }
 });
