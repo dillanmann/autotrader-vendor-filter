@@ -15,7 +15,10 @@ const ALL_VENDORS = [
     "SR Motor Company Limited",
     "Georgesons Car Sales",
     "German Autocentre",
-    "Bridge End Motors Ltd"];
+    "Bridge End Motors Ltd",
+    "bravoauto Halifax",
+    "Sherwoods Peugeot Gateshead",
+    "Redrose Cars"];
 
 function buildLabelElement(labelText) {
     let labelElem = document.createElement('label');
