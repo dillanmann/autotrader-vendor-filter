@@ -1,4 +1,5 @@
 const ADVERT_SELECTOR = ".search-results-container article ul li section[id]";
+const ADVERT_DISTANCE_SELECTOR = "div > div > div > p > span:last-child"
 const PAGE_NAVIGATION_SELECTOR = ".search-results-container > article > div:nth-child(2) > div:nth-child(1)";
 const REMOVED_ADVERTS_ELEMENT_ID = "removed-adverts-count";
 
@@ -44,15 +45,28 @@ function SetRemovedAdvertsElementContent(count){
     }
 }
 
-function RemoveSpecifiedVendorAdverts(vendorNames) {
+function filterAdvertsBasedOnSelectedOptions(adverts, vendorNamesToHide){
+    return Array.prototype.filter.call(adverts, elem => vendorNamesToHide.some(vendor => elem.innerText.includes(vendor)));
+}
+
+function filterAdvertsBasedOnMissingDistance(adverts){
+    return Array.prototype.filter.call(
+        adverts,
+        elem => {
+            let distanceSpan = elem.querySelector(ADVERT_DISTANCE_SELECTOR);
+            return !distanceSpan || (!distanceSpan.innerText.includes('miles') && !distanceSpan.innerText.includes('mile'));
+        });
+}
+
+function RemoveSpecifiedVendorAdverts(settings) {
     const adverts = document.querySelectorAll(ADVERT_SELECTOR);
-    const advertsToRemove = Array.prototype.filter.call(adverts, elem => vendorNames.some(vendor => elem.innerText.includes(vendor)));
+    const advertsToRemove = settings.hideAll ? filterAdvertsBasedOnMissingDistance(adverts) : filterAdvertsBasedOnSelectedOptions(adverts, settings.vendorsToHide);
     SetRemovedAdvertsElementContent(advertsToRemove.length);
     Array.prototype.forEach.call(advertsToRemove, elem => elem.closest('section[id]').style.display = 'none');
 }
 
 browser.runtime.onMessage.addListener((request) => {
     waitForElm(ADVERT_SELECTOR).then(() => {
-        RemoveSpecifiedVendorAdverts(request.activeFilters);
+        RemoveSpecifiedVendorAdverts(request);
     })
 });

@@ -12,20 +12,22 @@ const navigationFilters = {
 
 onError = (error) => console.error(`Error: ${error}`);
 
-function loadActiveVendorFilters() {
+function loadVendorFilterSettings() {
     return new Promise((resolve, reject) => {
         let storageItem = browser.storage.local.get();
         storageItem.then((res) => {
-            let vendorKeys = Object.keys(res);
-            let activeSettings = vendorKeys.filter(k => res[k].checked === true).map(v => v.replaceAll('-', ' ').replaceAll('_', '.'));
-            resolve(activeSettings);
+            let storageKeys = Object.keys(res);
+            let vendorNamesToHide = storageKeys.filter(k => res[k].checked === true).map(v => v.replaceAll('-', ' ').replaceAll('_', '.'));
+            let hideAll = res['hide-all-without-distance'].checked;
+            let settings = { 'vendorsToHide': vendorNamesToHide, 'hideAll': hideAll };
+            resolve(settings);
         });
     });
 }
 
-function invokeRemoveAdverts(tabId, activeFilters) {
+function invokeRemoveAdverts(tabId, settings) {
     browser.tabs
-        .sendMessage(tabId, { activeFilters: activeFilters })
+        .sendMessage(tabId, settings)
         .then()
         .catch(onError);
 }
@@ -37,9 +39,9 @@ function getActiveTab(){
     });
 }
 
-function onExecuted(activeFilters) {
+function onExecuted(settings) {
     let querying = getActiveTab();
-    querying.then(tabs => invokeRemoveAdverts(tabs[0].id, activeFilters));
+    querying.then(tabs => invokeRemoveAdverts(tabs[0].id, settings));
 }
 
 function loadContentScript(tabId) {
@@ -51,10 +53,10 @@ function loadContentScript(tabId) {
 }
 
 browser.webNavigation.onCompleted.addListener(data => {
-    let loadActiveFilters = loadActiveVendorFilters();
-    loadActiveFilters.then(activeFilters => {
+    let loadFilterSettings = loadVendorFilterSettings();
+    loadFilterSettings.then(settings => {
         let loadScript = loadContentScript(data.tabId);
-        loadScript.then(() => onExecuted(activeFilters));
+        loadScript.then(() => onExecuted(settings));
     });
 
 }, navigationFilters);
@@ -62,7 +64,7 @@ browser.webNavigation.onCompleted.addListener(data => {
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     // check for a URL in the changeInfo parameter (url is only added when it is changed)
     if (changeInfo.url && changeInfo.url.includes(AUTOTRADER_URL) && changeInfo.url.includes(CAR_SEARCH_PATH)) {
-        let loadActiveFilters = loadActiveVendorFilters();
+        let loadActiveFilters = loadVendorFilterSettings();
         loadActiveFilters.then(activeFilters => {
             let loadScript = loadContentScript(tabId);
             loadScript.then(() => onExecuted(activeFilters));
